@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Texas Pride Fuels — IRB Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--bg:#f4f2ed;--surface:#fff;--surface2:#eeebe4;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.18);--text:#1a1814;--text2:#6b6760;--text3:#9e9b96;--accent:#c94f2c;--green-bg:#e8f2e4;--green-text:#2a5220;--green-dot:#4a9434;--amber-bg:#fdf0d8;--amber-text:#6b4608;--amber-dot:#c47e12;--red-bg:#fde8e8;--red-text:#6b1818;--red-dot:#b83030;--r:10px;--rl:14px;--sh:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5}
+.hdr{background:var(--text);color:#fff;padding:18px 32px;display:flex;align-items:center;gap:16px}
+.hdr-logo{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);border-right:1px solid rgba(255,255,255,.15);padding-right:16px}
+.hdr-title{font-size:15px;font-weight:500}
+.hdr-badge{margin-left:auto;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.4)}
+.wrap{max-width:1160px;margin:0 auto;padding:28px 24px}
+.tabs{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap}
+.tb{padding:7px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;border:1px solid var(--border2);border-radius:100px;background:var(--surface);color:var(--text2);cursor:pointer;transition:all .15s}
+.tb:hover{background:var(--surface2);color:var(--text)}
+.tb.active{background:var(--text);color:#fff;border-color:var(--text)}
+.sec{display:none}.sec.active{display:block}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:24px}
+.met{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)}
+.met-lbl{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.met-val{font-size:26px;font-weight:600;color:var(--text);line-height:1}
+.met-val.red{color:#a32d2d}.met-val.amber{color:#8a5c0a}.met-val.green{color:#2e5c18}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px}
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px;box-shadow:var(--sh)}
+.cl{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.cw{position:relative;height:190px}
+.sh{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;margin-top:4px}
+.leg{display:flex;gap:18px;font-size:12px;color:var(--text2);margin-bottom:14px;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:6px}
+.ld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ac{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:10px;box-shadow:var(--sh);overflow:hidden}
+.ach{padding:11px 18px 9px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.ar{display:flex;align-items:flex-start;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border);transition:background .1s}
+.ar:last-child{border-bottom:none}
+.ar:hover{background:var(--surface2)}
+.ab{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;padding:3px 9px;border-radius:100px;white-space:nowrap;flex-shrink:0;letter-spacing:.04em}
+.b-complete{background:var(--green-bg);color:var(--green-text)}
+.b-in_progress{background:var(--amber-bg);color:var(--amber-text)}
+.b-not_started{background:var(--red-bg);color:var(--red-text)}
+.at{font-size:13px;color:var(--text);flex:1;line-height:1.4}
+.ao{font-size:11px;color:var(--text3);margin-top:2px}
+.en{font-size:13px;color:var(--text3);padding:13px 18px}
+.sw{margin-bottom:14px}
+select{width:100%;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface);color:var(--text);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+select:focus{outline:2px solid var(--text);outline-offset:1px}
+.ic{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh)}
+.ich{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:var(--surface2)}
+.it{font-weight:600;font-size:15px;color:var(--text)}
+.id{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap;margin-top:2px;flex-shrink:0}
+.rb{padding:13px 20px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);line-height:1.5}
+.rb strong{color:var(--text);font-weight:600}
+.sis{padding:12px 20px;display:flex;flex-direction:column;gap:7px}
+.si{display:flex;align-items:flex-start;gap:10px;font-size:13px;padding:7px 12px;border-radius:var(--r);line-height:1.4}
+.si.complete{background:var(--green-bg);color:var(--green-text)}
+.si.in_progress{background:var(--amber-bg);color:var(--amber-text)}
+.si.not_started{background:var(--red-bg);color:var(--red-text)}
+.sd{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.si.complete .sd{background:var(--green-dot)}.si.in_progress .sd{background:var(--amber-dot)}.si.not_started .sd{background:var(--red-dot)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
+.icard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;margin-bottom:12px;box-shadow:var(--sh)}
+.icard h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:7px}
+.icard p{font-size:13px;color:var(--text2);line-height:1.65}
+.nl{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.ni{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text2);padding:8px 12px;background:var(--surface2);border-radius:var(--r);line-height:1.4}
+.ns{color:var(--accent);font-size:12px;margin-top:1px;flex-shrink:0}
+.call{border-left:3px solid var(--accent);padding:9px 13px;margin:9px 0;font-size:13px;color:var(--text2);line-height:1.6;background:rgba(201,79,44,.04);border-radius:0 var(--r) var(--r) 0}
+.call strong{color:var(--text);font-weight:600;display:block;margin-bottom:2px;font-size:13px}
+.tn{font-size:12px;color:var(--text3);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 13px;margin-bottom:14px;line-height:1.5}
+.tn strong{color:var(--text);font-weight:500}
+.tw{position:relative;height:260px;margin-bottom:24px}
+@media(max-width:700px){.two{grid-template-columns:1fr}.hdr{padding:14px 18px}.wrap{padding:18px 16px}}
+@media(max-width:480px){.cgrid{grid-template-columns:1fr}.tabs{gap:4px}.tb{padding:6px 12px;font-size:12px}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-logo">Texas Pride Fuels</div>
+  <div class="hdr-title">Incident Review Board Dashboard</div>
+  <div class="hdr-badge">2026 YTD</div>
+</div>
+<div class="wrap">
+  <div class="tabs">
+    <button class="tb" onclick="showTab('irb',this)">What is an IRB?</button>
+    <button class="tb active" onclick="showTab('sum',this)">Summary &amp; Action Items</button>
+    <button class="tb" onclick="showTab('jan',this)">January</button>
+    <button class="tb" onclick="showTab('feb',this)">February</button>
+    <button class="tb" onclick="showTab('mar',this)">March</button>
+    <button class="tb" onclick="showTab('apr',this)">April</button>
+    <button class="tb" onclick="showTab('may',this)">May</button>
+    <button class="tb" onclick="showTab('jun',this)">June 2026</button>
+  </div>
+
+  <div id="irb" class="sec">
+    <div class="metrics">
+      <div class="met"><div class="met-lbl">IRBs conducted</div><div class="met-val">50+</div></div>
+      <div class="met"><div class="met-lbl">Peak (Feb 2025)</div><div class="met-val red">20</div></div>
+      <div class="met"><div class="met-lbl">Jun 2026</div><div class="met-val amber">15</div></div>
+      <div class="met"><div class="met-lbl">YTD incidents</div><div class="met-val">73</div></div>
+    </div>
+    <div class="sh">Incident trend — IRB program impact</div>
+    <div class="tn"><strong>IRB program launched Oct 2025</strong> — Dashed lines show pre- vs post-IRB monthly averages. Gray points are pre-program; blue are post-program.</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:20px;box-shadow:var(--sh);margin-bottom:24px"><div class="tw"><canvas id="trendChart"></canvas></div></div>
+    <div class="two">
+      <div>
+        <div class="sh">About the program</div>
+        <div class="icard"><h3>Incident Review Board</h3><p>A structured, fact-focused meeting that occurs within 24 hours of any safety incident. It brings together the Collaborative Leadership Team and individuals involved to answer: <em>why did this happen, and how do we prevent it from ever happening again?</em></p></div>
+        <div class="icard"><h3>Root Cause Analysis (RCA)</h3><p>Rather than assigning blame, the IRB uses the "5 Whys" method — asking why repeatedly until the true underlying cause is identified. Every RCA produces specific corrective actions with an assigned owner and a deadline.</p></div>
+        <div class="icard"><h3>Accountability without blame</h3><p>Grounded in professionalism and mutual respect. Focus is on facts and data, not emotions — creating a culture where employees feel safe surfacing issues early, before they become serious incidents.</p></div>
+      </div>
+      <div>
+        <div class="sh">Non-negotiables</div>
+        <div class="nl">
+          <div class="ni"><span class="ns">&#9733;</span><span>Begins with a Champions of Safety moment</span></div>
+          <div class="ni"><span class="ns">&#9733;</span><span>Must occur within 24 hours &#8212; no exceptions</span></div>
+          <div class="ni"><span class="ns">&#9733;</span><span>Focus on facts and data, not emotions or blame</span></div>
+          <div class="ni"><span class="ns">&#9733;</span><span>Every corrective action has an owner and deadline</span></div>
+          <div class="ni"><span class="ns">&#9733;</span><span>Follow the approved IRB template for consistency</span></div>
+          <div class="ni"><span class="ns">&#9733;</span><span>Professionalism and mutual respect are mandatory</span></div>
+          <div class="ni"><span class="ns">&#9733;</span><span>Eliminate distractions &#8212; give your full attention</span></div>
+          <div class="ni"><span class="ns">&#9733;</span><span>Ask WHY multiple times to reach the true root cause</span></div>
+        </div>
+        <div class="sh" style="margin-top:20px">How it&#8217;s working</div>
+        <div class="call"><strong>Structured accountability since Oct 2025</strong>Every incident now has an assigned owner, a root cause, and a corrective action with a deadline &#8212; driving a culture of learning and prevention.</div>
+        <div class="call"><strong>Recurring themes addressed</strong>Unattended transfers, missing spotters, and skipped pre-trips each now have standing SOPs as a direct result of IRB corrective actions.</div>
+        <div class="call"><strong>Culture shift: Stop Work Obligation</strong>Every team member has both the authority and the obligation to stop work when something doesn&#8217;t feel right.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sum" class="sec active">
+    <div class="metrics" id="sum-met"></div>
+    <div class="cgrid" id="cgrid"></div>
+    <div class="leg">
+      <span class="li"><span class="ld" style="background:var(--green-dot)"></span>Complete</span>
+      <span class="li"><span class="ld" style="background:var(--amber-dot)"></span>In progress</span>
+      <span class="li"><span class="ld" style="background:var(--red-dot)"></span>Not started</span>
+    </div>
+    <div id="oactions"></div>
+  </div>
+
+  <div id="jan" class="sec"><div class="sw"><select id="jan-sel" onchange="renderInc('jan',this.value)"><option value="">&#8212; select an incident &#8212;</option></select></div><div id="jan-inc"></div></div>
+  <div id="feb" class="sec"><div class="sw"><select id="feb-sel" onchange="renderInc('feb',this.value)"><option value="">&#8212; select an incident &#8212;</option></select></div><div id="feb-inc"></div></div>
+  <div id="mar" class="sec"><div class="sw"><select id="mar-sel" onchange="renderInc('mar',this.value)"><option value="">&#8212; select an incident &#8212;</option></select></div><div id="mar-inc"></div></div>
+  <div id="apr" class="sec"><div class="sw"><select id="apr-sel" onchange="renderInc('apr',this.value)"><option value="">&#8212; select an incident &#8212;</option></select></div><div id="apr-inc"></div></div>
+  <div id="may" class="sec"><div class="sw"><select id="may-sel" onchange="renderInc('may',this.value)"><option value="">&#8212; select an incident &#8212;</option></select></div><div id="may-inc"></div></div>
+  <div id="jun" class="sec"><div class="sw"><select id="jun-sel" onchange="renderInc('jun',this.value)"><option value="">&#8212; select an incident &#8212;</option></select></div><div id="jun-inc"></div></div>
+</div>
+
+<script>
+const D={
+jan:{p:"January 2026",oa:[{t:"Create robust product transfer SOP & checklist",o:"Hyche / East",s:"complete"},{t:"Continue to monitor inspection reporting compliance",o:"Hyche / Colt",s:"complete"},{t:"Disciplinary action for Joe on vehicle incident",o:"Kayla",s:"complete"},{t:"Confirm stocking of all units with sight glass repair kit",o:"Casey",s:"complete"}],ct:{"Fuel Spill - Overflow":2,"Vehicle Incident":1},inc:[
+{d:"1/3/26",t:"Fleet 3 backing incident",r:"Did not use spotter",a:[{t:"Transport & Routes team documented procedure training and acknowledgement",s:"complete"}]},
+{d:"1/4/26",t:"Matador Badgers frac tank overflow",r:"Left transfer unattended",a:[{t:"SWA recurring training topic",s:"complete"},{t:"No unattended transfers recurring training topic",s:"complete"},{t:"Transfer SOP checklist",s:"complete"}]},
+{d:"1/20/26",t:"Petrohunt frac tank overflow",r:"Tank not set up to offload to SOP. No one escalated",a:[{t:"Temporary specialized SOP for this setup",s:"complete"},{t:"Continued SWA training",s:"complete"}]}
+]},
+feb:{p:"February 2026",oa:[{t:"Create robust product transfer SOP & checklist",o:"Hyche / East",s:"complete"},{t:"Continue to monitor inspection reporting compliance",o:"Hyche / Colt",s:"complete"},{t:"Disciplinary action for Joe on vehicle incident",o:"Kayla",s:"complete"},{t:"Confirm stocking of all units with sight glass repair kit",o:"Casey",s:"complete"}],ct:{"Fuel Spill - Overflow":6,"Lube Product Release - Equip Failure":3,"Vehicle Incident":1,"Fuel Spill - Equip Failure":1},inc:[
+{d:"2/6/26",t:"El Reno yard transfer overflow",r:"Continual behavior from employee",a:[{t:"Termination",s:"complete"}]},
+{d:"2/8/26",t:"Falcons stuck QD",r:"Mechanical failure of QD, inspections did not catch it timely",a:[{t:"QD inspection added to rotating JSI talking points",s:"complete"},{t:"Inspection reporting compliance",s:"complete"}]},
+{d:"2/11/26",t:"Vehicle incident — bobtail hit dumpster",r:"Employee chose to not find a spotter",a:[{t:"Reviewed requirement",s:"complete"},{t:"Disciplinary action",s:"complete"}]},
+{d:"2/11/26",t:"XTO Morgan overfilled fuel trailer",r:"Employee did not strap / calculate end fill",a:[{t:"Containment inventory twice a month",s:"complete"},{t:"Strap / calculate on product transfer checklist",s:"complete"}]},
+{d:"2/11/26",t:"Fleet 6 overfilled shuttle",r:"Driver continued past max fill negating SWA by AFSOs",a:[{t:"Driver terminated",s:"complete"},{t:"Monthly review of max fill and SWA policies",s:"complete"}]},
+{d:"2/22/26",t:"Estis sight tubes breaking",r:"Degradation of PVC tube. Lack of proper inspections when filling",a:[{t:"Trucks stocked with all necessary repair items",s:"complete"},{t:"Stand down to address poor practices",s:"complete"}]},
+{d:"2/23/26",t:"MD yard upright overfilled",r:"Loaded wrong product, did not calculate levels",a:[{t:"Added physical and digital level charts to offload area",s:"complete"},{t:"Disciplinary action",s:"complete"}]},
+{d:"2/26/26",t:"Citizens third party overflow frac tank",r:"Unattended transfer, driver did not follow instructions",a:[{t:"Banned driver",s:"complete"},{t:"AFS safety review: unattended transfers",s:"complete"}]},
+{d:"2/27/26",t:"Kaiser-Francis El Mar transfer release",r:"Used wrong offload adapter",a:[{t:"Only offloading from top with a stinger now",s:"complete"}]}
+]},
+mar:{p:"March 2026",oa:[{t:"Inspect bobtail fleet with Thor boxes for damage / remove",o:"Mike G / Gio",s:"in_progress"},{t:"Set remaining sensors on acquired tanks",o:"Phil M",s:"complete"},{t:"Verify all have acknowledged tank washout SOP",o:"Hyche",s:"complete"},{t:"Provide training sheet for clock gauge",o:"Hyche",s:"complete"},{t:"Continental tank charts before next delivery (on hold)",o:"Kayla",s:"complete"},{t:"Decide on repairs for U44",o:"Phil",s:"complete"},{t:"Add COS Slack message about incident reporting regardless of size or containment",o:"Hyche / East",s:"complete"}],ct:{"Product Release":7,"Lube Product Release - Equip Failure":3,"Vehicle Incident":2,"Fuel Spill - Equip Failure":1},inc:[
+{d:"3/5/26",t:"Unit 40 fire",r:"Wiring from legacy system rubbed through insulation on seat mount",a:[{t:"Review of bobtail fleet with Thor boxes for removal or shielding",s:"complete"},{t:"Inspect for damage and remove / shield",s:"complete"}]},
+{d:"3/10/26",t:"Triple Crown spill",r:"Hose inspection was not performed",a:[{t:"Hose inspection added to product transfer checklist",s:"complete"},{t:"Rig up inspection coached",s:"complete"}]},
+{d:"3/10/26",t:"Estis run out",r:"Old sensors from acquired tanks not functioning correctly",a:[{t:"Replace all sensors",s:"complete"}]},
+{d:"3/12/26",t:"Estis unit leak",r:"Not at fault — value add service with monitoring",a:[{t:"Met with Xfluid on updating alerts and thresholds",s:"complete"},{t:"Xfluid not-at-fault resolution",s:"complete"}]},
+{d:"3/12/26",t:"Marshall yard release",r:"Tank not inspected before transported or filled. Manway not secured",a:[{t:"Tank wash SOP rolled out",s:"complete"},{t:"Containments ordered for Marshall stationary tanks",s:"complete"}]},
+{d:"3/13/26",t:"TP 07 drop",r:"Did not perform pre-trip",a:[{t:"Terminated",s:"complete"}]},
+{d:"3/16/26",t:"Unit 302 overfill",r:"Bad math on loading amount, did not confirm visually",a:[{t:"Product transfer checklist calculations required",s:"complete"}]},
+{d:"3/16/26",t:"Estis run out (sensor)",r:"Sensor giving stagnant readings",a:[{t:"Meet with Xfluid to add these alerts",s:"complete"}]},
+{d:"3/17/26",t:"Estis property damage",r:"Driver did not follow several policies",a:[{t:"Driver terminated",s:"complete"}]},
+{d:"3/18/26",t:"Baseline Jourdanton release",r:"Material failure allowed gravity drainage",a:[{t:"Additional extraction stingers fabricated",s:"complete"},{t:"Stinger only extraction policy extended",s:"complete"}]},
+{d:"3/19/26",t:"Continental crane overfill",r:"Did not stop work when load could not be calculated",a:[{t:"Tank charts for this customer requested before next load",s:"complete"},{t:"Clock gauge training to be distributed",s:"complete"}]},
+{d:"3/21/26",t:"PK32 DOT violation",r:"Repair not completed thoroughly. Lapse in recordkeeping with TXDMV",a:[{t:"Repair procedure revamped",s:"complete"},{t:"TXDMV database updated",s:"complete"}]},
+{d:"3/21/26",t:"U44 tank leak oil release",r:"Tank is cracked",a:[{t:"Identify leaking compartment and LOTO",s:"complete"},{t:"VK test once repairs are complete",s:"complete"}]},
+{d:"3/23/26",t:"Evo 5 transfer release",r:"Did not report properly",a:[{t:"Implement daily reporting message",s:"complete"}]}
+]},
+apr:{p:"April 2026",oa:[{t:"Mission control oversight usage policy",o:"Hyche",s:"complete"},{t:"Scale all trucks",o:"Lube Leadership",s:"complete"},{t:"Verify air lines on all trucks",o:"Lube Leadership",s:"complete"},{t:"Stinger back to AEI to test E-stop",o:"Colt",s:"complete"}],ct:{"DOT Violation":3,"Product Release":2,"Driving Behavior":1,"NPT":1,"Equipment Damage":1,"Product Contamination":1},inc:[
+{d:"4/3/26",t:"Desquan Lytx behaviors",r:"Decision not to adhere to TPF driving policy",a:[{t:"Disciplinary action and mandatory training",s:"complete"}]},
+{d:"4/7/26",t:"Rose City NPT",r:"FS15 system error, poor time management, did not utilize all resources (mission control)",a:[{t:"FS15 to AEI after job",s:"complete"},{t:"Team messaging regarding time management and hand fills",s:"complete"},{t:"Mission control monitoring policy",s:"complete"}]},
+{d:"4/13/26",t:"Unit 94 overweight",r:"Tank had moved since last weighed, max fill was not documented",a:[{t:"Drop volume until weights are verified",s:"complete"},{t:"Move tank and reweigh",s:"complete"},{t:"Get scale tickets for all units",s:"complete"}]},
+{d:"4/15/26",t:"Excalibur contamination",r:"(RCA pending)",a:[{t:"Utilize compartment labeling system",s:"complete"},{t:"Visual product verification",s:"complete"},{t:"Roll out product checklist",s:"complete"}]},
+{d:"4/15/26",t:"Air hoses ticket",r:"Hose separation hardware had failed / rubbing not caught on inspections",a:[{t:"Check hose separation on all trucks",s:"complete"}]},
+{d:"4/16/26",t:"Oklahoma yard release",r:"Product transfer steps not completed correctly — incorrect strap reading math",a:[{t:"Roll out product transfer checklist to OK guys",s:"complete"}]},
+{d:"4/16/26",t:"Magellan rack damage",r:"Task deviated and failed to complete steps necessary",a:[{t:"Reviewed with Mike on walkarounds, everyone's role in the operation",s:"complete"}]},
+{d:"4/20/26",t:"Exxon spot boost pump overfill",r:"Tank shape gave bad readings. E-stop failure",a:[{t:"Stinger back to AEI to test E-stop",s:"complete"},{t:"Leadership to verify tank settings on irregular tanks",s:"complete"}]},
+{d:"4/23/26",t:"Dexter DOT violation",r:"Pre-trip not thorough enough",a:[{t:"Gate check every asset that rolls, focus on loose bolts",s:"complete"}]}
+]},
+may:{p:"May 2026",oa:[{t:"Finalize metal thickness testing procedures",o:"Hyche",s:"in_progress"},{t:"Create tank test cart",o:"Hearn",s:"in_progress"},{t:"Ensure truck inventory for all checklist items",o:"Casey",s:"in_progress"},{t:"Validate customer list Xfluid vs Fishbowl",o:"Lube Team",s:"in_progress"},{t:"Strengthen multipoint inspection & integrate with work orders",o:"Gio / Hyche",s:"in_progress"},{t:"Finalize tank inspection checklists",o:"Moore",s:"in_progress"},{t:"Spare placards in all trucks",o:"Moore",s:"in_progress"}],ct:{"DOT Violation":2,"Product Release":1,"Product Contamination":1,"NPT":1,"Out of Product":2,"Service Failure":2},inc:[
+{d:"5/1/26",t:"XTO tank inoperable",r:"Tank was not properly tested before leaving yard, fuel order was not visible",a:[{t:"Build tank test cart",s:"in_progress"},{t:"Maintain consistency with order communication (Email)",s:"complete"}]},
+{d:"5/2/26",t:"Estis run out",r:"Weather delay allowed for levels to drop, poor communication",a:[{t:"Communicate any possible service disruptions with customer",s:"complete"},{t:"Build in weather forecasting to dispatch plan",s:"complete"}]},
+{d:"5/4/26",t:"TGNR late load",r:"Visibility issues: supply to dispatch, sales to order, VTC to terminal managers",a:[{t:"Open these lanes of visibility",s:"complete"}]},
+{d:"5/6/26",t:"Strand release",r:"New to us tank was not properly tested",a:[{t:"Revamp inspection checklist for new tanks",s:"not_started"},{t:"Maintain fuel needed to leak test",s:"complete"},{t:"Acquire metal thickness testers",s:"complete"}]},
+{d:"5/13/26",t:"Falcons generator failure",r:"Multiple connection types caused confusion and delay. Reactive maintenance identified a problem too late",a:[{t:"Start spare gen 1/day",s:"complete"},{t:"Add anti-seize to swap procedure",s:"complete"},{t:"Retrofit connections to make uniform",s:"complete"}]},
+{d:"5/18/26",t:"Estis oil in coolant",r:"Did not perform thorough tank inspection, did not possess proper maintenance supplies",a:[{t:"Ensure all trucks are stocked",s:"not_started"},{t:"Roll out product transfer checklist to Lube team",s:"complete"}]},
+{d:"5/20/26",t:"Baseline runout",r:"No process to validate all tank sensors present",a:[{t:"Rolled out lube delivery checklist",s:"complete"},{t:"Pull customer list from Fishbowl and compare with Xfluid",s:"in_progress"}]},
+{d:"5/21/26",t:"Otillio DOT violations",r:"Poor pre-trip, stronger documentation would have helped investigation",a:[{t:"Strengthen multipoint inspection process",s:"in_progress"},{t:"Review brake pre-trip with team",s:"complete"}]},
+{d:"5/22/26",t:"Robert DOT violation",r:"Did not perform tank readiness check / pre-trip on site",a:[{t:"Finalize tank condition checklists",s:"in_progress"},{t:"Spare placards in all trucks",s:"in_progress"}]}
+]},
+jun:{p:"June 2026",oa:[{t:"Create tank selector quick reference",o:"Hyche",s:"not_started"},{t:"Last week of month: meeting to ensure all proper orders are placed for next month",o:"Billy",s:"in_progress"},{t:"Review orders daily and escalate critical ones in jeopardy of being late",o:"Billy",s:"in_progress"},{t:"Add Danny to Fleetio post-trip email list",o:"Gio",s:"in_progress"},{t:"Remind all drivers proper process of reporting issues on pre and post trip reports and to Supervisor",o:"Casey / Danny",s:"in_progress"}],ct:{"Product Release":7,"Property Damage":3,"Out of Product":1},inc:[
+{d:"6/1/26",t:"TGNR extraction overflow",r:"Did not stop work for not being able to validate gallons",a:[{t:"Verified that visual inspection of levels is a step on transfer checklist",s:"complete"},{t:"Retrained on SWA — same rules apply to customer tanks",s:"complete"}]},
+{d:"6/3/26",t:"Unit 01 overflow",r:"Driver failed to maintain line of sight to spotter",a:[{t:"Train on repositioning so controls are in line of sight",s:"complete"},{t:"No idling up on transfers confirmed",s:"complete"}]},
+{d:"6/4/26",t:"Mach property damage",r:"Driver did not follow approved route, failed to report",a:[{t:"Reviewed reporting expectations with employee",s:"complete"},{t:"Added route importance to monthly talking points",s:"complete"}]},
+{d:"6/11/26",t:"Estis residual oil release",r:"Employee chose to not clean up residual oil from transfer hose",a:[{t:"Reviewed expectations and reporting requirements with employee",s:"complete"}]},
+{d:"6/15/26",t:"Matador Greencore release",r:"Chose to deviate from 90% rule, left transfer unattended",a:[{t:"DA (Termination)",s:"complete"},{t:"Continue monitoring compliance on checklist",s:"complete"}]},
+{d:"6/17/26",t:"El Reno yard overfill — Kenneth",r:"Did not verify compartment",a:[{t:"Communicate with team that compartments must be visually verified",s:"complete"},{t:"Obtain driver acknowledgment for all OK drivers",s:"complete"}]},
+{d:"6/19/26",t:"El Reno yard overfill — Antone",r:"Failed to ensure complete training, left transfer unattended",a:[{t:"Create pump cart SOP & Train",s:"complete"},{t:"Implement overfill protection system",s:"in_progress"}]},
+{d:"6/22/26",t:"Fleet 4 release",r:"Employee lacked knowledge of actuator operation for this activity",a:[{t:"Training, create quick reference guide",s:"in_progress"}]},
+{d:"6/25/26",t:"Baseline runout",r:"Poor communication on order confirmation and product availability",a:[{t:"Last week of month: meeting to ensure all proper orders are placed for next month",s:"in_progress"},{t:"Review orders daily and escalate critical ones in jeopardy of being late",s:"in_progress"}]},
+{d:"6/25/26",t:"LT-01 transmission",r:"Issue was not escalated properly by Fleetio or supervisor",a:[{t:"Remind all drivers proper process of reporting issues on pre and post trip reports and to Supervisor",s:"in_progress"},{t:"Add Danny to Fleetio post-trip email list",s:"in_progress"},{t:"When driver finds downing discrepancy on post trip, park at down line in front of mechanics shop",s:"in_progress"}]},
+{d:"6/26/26",t:"TP 24 tire drag",r:"Did not follow operation procedures for asset",a:[{t:"Complete retraining period",s:"complete"},{t:"Disciplinary action (Term) 2nd occurrence",s:"complete"}]}
+]}
+};
+
+const MO=['jan','feb','mar','apr','may','jun'];
+const CC=['#2a6496','#3a8a5a','#c94f2c','#8a4a9a','#c47e12','#4a7a9a','#d4537e'];
+const TR={lb:['Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26','Jun 26'],d:[13,20,13,7,10,11,18,11,13,9,12,12,9,13,15,12,14,15],s:9};
+
+function showTab(id,btn){document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');}
+function sl(s){return s==='complete'?'Complete':s==='in_progress'?'In progress':'Not started'}
+function sb(s){return '<span class="ab b-'+s+'">'+sl(s)+'</span>'}
+
+function buildSum(){
+  let ti=0,tip=0,tns=0;
+  MO.forEach(k=>{ti+=D[k].inc.length;D[k].oa.forEach(a=>{if(a.s==='in_progress')tip++;else if(a.s==='not_started')tns++;});});
+  document.getElementById('sum-met').innerHTML='<div class="met"><div class="met-lbl">Total incidents</div><div class="met-val">'+ti+'</div></div>'+
+    MO.map(k=>'<div class="met"><div class="met-lbl">'+D[k].p.split(' ')[0]+'</div><div class="met-val">'+D[k].inc.length+'</div></div>').join('')+
+    '<div class="met"><div class="met-lbl">Open \u2014 in progress</div><div class="met-val amber">'+tip+'</div></div>'+
+    '<div class="met"><div class="met-lbl">Open \u2014 not started</div><div class="met-val red">'+tns+'</div></div>';
+
+  document.getElementById('cgrid').innerHTML=MO.map((k,i)=>'<div class="cc"><div class="cl">'+D[k].p+'</div><div class="cw"><canvas id="ch'+i+'"></canvas></div></div>').join('');
+  MO.forEach((k,i)=>{const d=D[k];new Chart(document.getElementById('ch'+i),{type:'doughnut',data:{labels:Object.keys(d.ct),datasets:[{data:Object.values(d.ct),backgroundColor:CC,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10,family:'DM Mono'},boxWidth:10,padding:7}}}}});});
+
+  document.getElementById('oactions').innerHTML=MO.map(k=>{const x=D[k].oa.filter(a=>a.s!=='complete');return'<div class="ac"><div class="ach">'+D[k].p+' \u2014 open action items</div>'+(x.length?x.map(a=>'<div class="ar">'+sb(a.s)+'<div><div class="at">'+a.t+'</div><div class="ao">Owner: '+a.o+'</div></div></div>').join(''):'<div class="en">No open action items.</div>')+'</div>';}).join('');
+}
+
+function buildTrend(){
+  const pre=TR.d.slice(0,TR.s),post=TR.d.slice(TR.s);
+  const pa=Math.round(pre.reduce((a,b)=>a+b,0)/pre.length),qa=Math.round(post.reduce((a,b)=>a+b,0)/post.length);
+  new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:TR.lb,datasets:[
+    {label:'Incidents',data:TR.d,borderColor:'#2a6496',backgroundColor:'rgba(42,100,150,.07)',borderWidth:2,pointRadius:4,pointBackgroundColor:TR.d.map((_,i)=>i<TR.s?'#aaa':'#2a6496'),tension:0.3,fill:true},
+    {label:'Pre-IRB avg',data:Array(TR.lb.length).fill(null).map((_,i)=>i<TR.s?pa:null),borderColor:'#c94f2c',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false},
+    {label:'Post-IRB avg',data:Array(TR.lb.length).fill(null).map((_,i)=>i>=TR.s?qa:null),borderColor:'#3a6b2a',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:11,family:'DM Mono'}}},y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:11,family:'DM Mono'},stepSize:5}}}}});
+}
+
+function buildDD(){MO.forEach(k=>{const s=document.getElementById(k+'-sel');D[k].inc.forEach((inc,i)=>{const o=document.createElement('option');o.value=i;o.textContent=inc.d+' \u2014 '+inc.t;s.appendChild(o);});});}
+
+function renderInc(k,idx){
+  const el=document.getElementById(k+'-inc');
+  if(idx===''){el.innerHTML='';return;}
+  const inc=D[k].inc[parseInt(idx)];
+  el.innerHTML='<div class="ic"><div class="ich"><div class="it">'+inc.t+'</div><div class="id">'+inc.d+'</div></div><div class="rb"><strong>Root cause:</strong> '+inc.r+'</div><div class="sis">'+inc.a.map(a=>'<div class="si '+a.s+'"><span class="sd"></span><span>'+a.t+'</span></div>').join('')+'</div></div>';
+}
+
+buildSum();buildDD();buildTrend();
+</script>
+</body>
+</html>
